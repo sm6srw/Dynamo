@@ -1,4 +1,6 @@
-﻿using Dynamo.Models;
+﻿using System.Windows.Documents;
+
+using Dynamo.Models;
 using Dynamo.Nodes;
 using Dynamo.Utilities;
 using Dynamo.ViewModels;
@@ -17,6 +19,33 @@ namespace Dynamo.TestInfrastructure
         public ConnectorMutator(DynamoViewModel viewModel)
             : base(viewModel)
         {
+        }
+
+        public override int Mutate(Random rand)
+        {
+
+            List<Guid> connectorGuids = new List<Guid>();
+
+            foreach (var node in DynamoViewModel.CurrentSpace.Nodes)
+            {
+                foreach (var connector in node.AllConnectors)
+                {
+                    if (!connectorGuids.Contains(connector.GUID))
+                        connectorGuids.Add(connector.GUID);
+                }
+            }
+
+            var target = connectorGuids[rand.Next(connectorGuids.Count)];
+
+            this.DynamoViewModel.UIDispatcher.Invoke(new Action(() =>
+            {
+                DynamoModel.DeleteModelCommand delCommand =
+                    new DynamoModel.DeleteModelCommand(target);
+
+                DynamoViewModel.ExecuteCommand(delCommand);
+            }));
+
+            return 1;
         }
 
         public override bool RunTest(NodeModel node, EngineController engine, StreamWriter writer)

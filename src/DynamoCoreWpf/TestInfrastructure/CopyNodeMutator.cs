@@ -19,6 +19,11 @@ namespace Dynamo.TestInfrastructure
         {
         }
 
+        public override int Mutate(Random rand)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool RunTest(NodeModel node, EngineController engine, StreamWriter writer)
         {
             const bool pass = false;
@@ -47,16 +52,7 @@ namespace Dynamo.TestInfrastructure
             writer.WriteLine("### - undo complete");
             writer.Flush();
 
-            DynamoViewModel.UIDispatcher.Invoke(new Action(() =>
-            {
-                DynamoModel.RunCancelCommand runCancel =
-                    new DynamoModel.RunCancelCommand(false, false);
-                DynamoViewModel.ExecuteCommand(runCancel);
-            }));
-            while (!DynamoViewModel.HomeSpace.RunSettings.RunEnabled)
-            {
-                Thread.Sleep(10);
-            }
+            RunGraph();
 
             writer.WriteLine("### - Beginning test of CopyNode");
             if (node.OutPorts.Count > 0)

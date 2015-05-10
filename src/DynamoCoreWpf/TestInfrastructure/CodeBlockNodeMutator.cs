@@ -23,6 +23,11 @@ namespace Dynamo.TestInfrastructure
             return typeof(CodeBlockNodeModel);
         }
 
+        public override int Mutate(Random rand)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool RunTest(NodeModel node, EngineController engine, StreamWriter writer)
         {
             bool pass = false;        
@@ -54,13 +59,7 @@ namespace Dynamo.TestInfrastructure
 
             writer.WriteLine("### - Beginning re-exec");
 
-            DynamoViewModel.UIDispatcher.Invoke(new Action(() =>
-            {
-                DynamoModel.RunCancelCommand runCancel =
-                    new DynamoModel.RunCancelCommand(false, false);
-
-                DynamoViewModel.ExecuteCommand(runCancel);
-            }));
+            RunGraph();
             Thread.Sleep(100);
 
             writer.WriteLine("### - re-exec complete");
@@ -68,17 +67,8 @@ namespace Dynamo.TestInfrastructure
 
             writer.WriteLine("### - Beginning undo");
 
-            for (int iUndo = 0; iUndo < numberOfUndosNeeded; iUndo++)
-            {
-                DynamoViewModel.UIDispatcher.Invoke(new Action(() =>
-                {
-                    DynamoModel.UndoRedoCommand undoCommand =
-                        new DynamoModel.UndoRedoCommand(
-                            DynamoModel.UndoRedoCommand.Operation.Undo);
 
-                    DynamoViewModel.ExecuteCommand(undoCommand);
-                }));
-            }
+            UndoN(numberOfUndosNeeded);
             Thread.Sleep(100);
 
             writer.WriteLine("### - undo complete");
@@ -86,18 +76,7 @@ namespace Dynamo.TestInfrastructure
 
             writer.WriteLine("### - Beginning re-exec");
 
-            DynamoViewModel.UIDispatcher.Invoke(new Action(() =>
-            {
-                DynamoModel.RunCancelCommand runCancel =
-                    new DynamoModel.RunCancelCommand(false, false);
-
-                DynamoViewModel.ExecuteCommand(runCancel);
-            }));
-            Thread.Sleep(10);
-            while (!DynamoViewModel.HomeSpace.RunSettings.RunEnabled)
-            {
-                Thread.Sleep(10);
-            }
+            RunGraph();
 
             writer.WriteLine("### - re-exec complete");
             writer.Flush();

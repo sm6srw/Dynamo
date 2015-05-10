@@ -28,6 +28,12 @@ namespace Dynamo.TestInfrastructure
             return type;
         }
 
+        public override int Mutate(Random rand)
+        {
+            throw new NotImplementedException();
+
+        }
+
         public override bool RunTest(NodeModel node, EngineController engine, StreamWriter writer)
         {
             bool pass = false;
@@ -47,18 +53,7 @@ namespace Dynamo.TestInfrastructure
             Thread.Sleep(100);
 
             writer.WriteLine("### - Beginning undo");
-            for (int iUndo = 0; iUndo < numberOfUndosNeeded; iUndo++)
-            {
-                DynamoViewModel.UIDispatcher.Invoke(new Action(() =>
-                {
-                    DynamoModel.UndoRedoCommand undoCommand =
-                        new DynamoModel.UndoRedoCommand(
-                            DynamoModel.UndoRedoCommand.Operation.Undo);
-
-                    DynamoViewModel.ExecuteCommand(undoCommand);
-                }));
-                Thread.Sleep(100);
-            }
+            UndoN(numberOfUndosNeeded);
             writer.WriteLine("### - undo complete");
             writer.Flush();
 

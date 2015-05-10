@@ -28,6 +28,11 @@ namespace Dynamo.TestInfrastructure
             return type;
         }
 
+        public override int Mutate(Random rand)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool RunTest(NodeModel node, EngineController engine, StreamWriter writer)
         {
             bool pass = false;

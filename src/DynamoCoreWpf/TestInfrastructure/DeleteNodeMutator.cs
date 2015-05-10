@@ -1,4 +1,6 @@
-﻿using Dynamo.Models;
+﻿using System.Collections.Generic;
+
+using Dynamo.Models;
 using Dynamo.ViewModels;
 using System;
 using System.Linq;
@@ -20,108 +22,35 @@ namespace Dynamo.TestInfrastructure
         {
         }
 
+
         public override bool RunTest(NodeModel node, EngineController engine, StreamWriter writer)
         {
-            bool pass = false;
-
-            var nodes = DynamoViewModel.Model.CurrentWorkspace.Nodes;
-            if (nodes.Count == 0)
-                return pass;
-
-            int nodesCountBeforeDelete = nodes.Count;
-
-            writer.WriteLine("### - Beginning readout");
-            
-            writer.WriteLine("### - Beginning delete");
-            writer.WriteLine("### - Deletion target: " + node.GUID);
-
-            int numberOfUndosNeeded = Mutate(node);
-
-            Thread.Sleep(100);
-
-            writer.WriteLine("### - delete complete");
-            writer.Flush();
-
-            writer.WriteLine("### - Beginning re-exec");
-
-            DynamoViewModel.UIDispatcher.Invoke(new Action(() =>
-            {
-                DynamoModel.RunCancelCommand runCancel =
-                    new DynamoModel.RunCancelCommand(false, false);
-
-                DynamoViewModel.ExecuteCommand(runCancel);
-            }));
-            Thread.Sleep(100);
-
-            writer.WriteLine("### - re-exec complete");
-            writer.Flush();
-
-            writer.WriteLine("### - Beginning undo");
-
-            int nodesCountAfterDelete = DynamoViewModel.Model.CurrentWorkspace.Nodes.Count;
-
-            if (nodesCountBeforeDelete > nodesCountAfterDelete)
-            {
-                for (int iUndo = 0; iUndo < numberOfUndosNeeded; iUndo++)
-                {
-                    DynamoViewModel.UIDispatcher.Invoke(new Action(() =>
-                    {
-                        DynamoModel.UndoRedoCommand undoCommand =
-                            new DynamoModel.UndoRedoCommand(
-                                DynamoModel.UndoRedoCommand.Operation.Undo);
-
-                        DynamoViewModel.ExecuteCommand(undoCommand);
-                    }));
-                    Thread.Sleep(100);
-                }
-                writer.WriteLine("### - undo complete");
-                writer.Flush();
-
-                writer.WriteLine("### - Beginning re-exec");
-
-                DynamoViewModel.UIDispatcher.Invoke(new Action(() =>
-                {
-                    DynamoModel.RunCancelCommand runCancel =
-                        new DynamoModel.RunCancelCommand(false, false);
-
-                    DynamoViewModel.ExecuteCommand(runCancel);
-                }));
-                Thread.Sleep(10);
-                while (!DynamoViewModel.HomeSpace.RunSettings.RunEnabled)
-                {
-                    Thread.Sleep(10);
-                }
-                writer.WriteLine("### - re-exec complete");
-                writer.Flush();
-
-                int nodesCountAfterUbdo = DynamoViewModel.Model.CurrentWorkspace.Nodes.Count;
-                if (nodesCountBeforeDelete == nodesCountAfterUbdo)
-                    writer.WriteLine("### - Node was restored");
-                else
-                {
-                    writer.WriteLine("### - Node wasn't restored");
-                    return pass;
-                }
-                writer.Flush();
-            }
-            else
-            {
-                writer.WriteLine("### - Error removing a node");
-                writer.Flush();
-                return pass;
-            }
-            return pass = true;
+            return false;
         }
 
         public override int Mutate(NodeModel node)
         {
+            throw new NotImplementedException();
+        }
+
+        public override int Mutate(Random rand)
+        {
+            List<NodeModel> nodes = DynamoViewModel.CurrentSpace.Nodes.ToList();
+
+            int sliderCount = nodes.Count;
+
+            if (sliderCount == 0)
+                return 0;
+
+            NodeModel node = nodes[rand.Next(sliderCount)];
+
             this.DynamoViewModel.UIDispatcher.Invoke(new Action(() =>
-                {
-                    DynamoModel.DeleteModelCommand delCommand =
-                        new DynamoModel.DeleteModelCommand(node.GUID);
-                
-                    DynamoViewModel.ExecuteCommand(delCommand);
-                }));
+            {
+                DynamoModel.DeleteModelCommand delCommand =
+                    new DynamoModel.DeleteModelCommand(node.GUID);
+
+                DynamoViewModel.ExecuteCommand(delCommand);
+            }));
 
             //We've performed a single delete
             return 1;

@@ -1,4 +1,7 @@
-﻿using Dynamo.Models;
+﻿using System.Collections.Generic;
+using System.Threading;
+
+using Dynamo.Models;
 using Dynamo.ViewModels;
 using System;
 using System.IO;
@@ -24,6 +27,8 @@ namespace Dynamo.TestInfrastructure
         /// </summary>
         /// <returns></returns>
         public abstract int Mutate(NodeModel node);
+
+        public abstract int Mutate(Random rand);
                                                                                                    
 
         public abstract bool RunTest(NodeModel node, EngineController engine, StreamWriter writer);
@@ -37,5 +42,31 @@ namespace Dynamo.TestInfrastructure
         {
             get { return 1000; }
         }
+
+        protected void UndoN(int count)
+        {
+            DynamoViewModel.UIDispatcher.Invoke(
+                new Action(
+                    () =>
+                    {
+                        for (int i = 0; i < count; i++)
+                        {
+                            DynamoModel.UndoRedoCommand undoCommand =
+                                new DynamoModel.UndoRedoCommand(
+                                    DynamoModel.UndoRedoCommand.Operation.Undo);
+                            DynamoViewModel.ExecuteCommand(undoCommand);
+                        }
+                    }));
+        }
+
+        protected void RunGraph()
+        {
+            DynamoViewModel.HomeSpace.Run();
+            while (!DynamoViewModel.HomeSpace.RunSettings.RunEnabled)
+            {
+                Thread.Sleep(10);
+            }
+        }
+
     }
 }

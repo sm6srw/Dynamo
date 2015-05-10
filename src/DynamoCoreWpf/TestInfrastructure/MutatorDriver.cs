@@ -24,6 +24,54 @@ namespace Dynamo.TestInfrastructure
 
         internal void RunMutationTests()
         {
+            Random rand = new Random();
+
+            List<AbstractMutator> mutators = new List<AbstractMutator>();
+            mutators.Add(new IntegerSliderMutator(dynamoViewModel));
+            //mutators.Add(new DeleteNodeMutator(dynamoViewModel));
+            //mutators.Add(new ConnectorMutator(dynamoViewModel));
+
+            new Thread(
+                () =>
+                    {
+
+                        for (int i = 0; i < 1000; i++)
+                        {
+                            AbstractMutator mutator = mutators[rand.Next(mutators.Count)];
+
+                            if (rand.NextDouble() < 0.01)
+                            {
+                                mutator = new ConnectorMutator(dynamoViewModel);
+                            }
+
+                            RunGraph();
+
+                            var valueMap = ComputeValueMap();
+
+                            int undoCount = mutator.Mutate(rand);
+
+                            RunGraph();
+
+                            Thread.Sleep(1);
+
+                            UndoN(undoCount);
+
+                            RunGraph();
+
+                            Thread.Sleep(1);
+
+
+                            if (!CompareValueMap(valueMap))
+                                throw new MutationTestFailureException();
+
+                        }
+                    }).Start();
+
+
+        }
+
+        internal void RunMutationTests2()
+        {
             String logTarget = dynamoViewModel.Model.Logger.LogPath + "MutationLog.log";
 
             StreamWriter writer = new StreamWriter(logTarget);
@@ -131,5 +179,65 @@ namespace Dynamo.TestInfrastructure
                 dynamoViewModel.Model.Logger.Log(att.Caption + ": " + (passed ? "pass" : "FAIL"));
             }
         }
+
+
+
+
+        protected void UndoN(int count)
+        {
+            dynamoViewModel.UIDispatcher.Invoke(
+                new Action(
+                    () =>
+                    {
+                        for (int i = 0; i < count; i++)
+                        {
+                            DynamoModel.UndoRedoCommand undoCommand =
+                                new DynamoModel.UndoRedoCommand(
+                                    DynamoModel.UndoRedoCommand.Operation.Undo);
+                            dynamoViewModel.ExecuteCommand(undoCommand);
+                        }
+                    }));
+        }
+
+        protected void RunGraph()
+        {
+            dynamoViewModel.HomeSpace.Run();
+            while (!dynamoViewModel.HomeSpace.RunSettings.RunEnabled)
+            {
+                Thread.Sleep(10);
+            }
+        }
+
+        protected Dictionary<Guid, String> ComputeValueMap()
+        {
+            var valueMap = new Dictionary<Guid, String>();
+            
+            foreach (NodeModel node in dynamoViewModel.CurrentSpace.Nodes)
+            {
+                if (node.OutPorts.Count > 0)
+                {
+                    Guid guid = node.GUID;
+                    Object data = node.GetValue(0, dynamoViewModel.Model.EngineController).Data;
+                    String val = data != null ? data.ToString() : "null";
+                    valueMap.Add(guid, val);
+                }
+            }
+
+            return valueMap;
+        }
+
+        protected bool CompareValueMap(Dictionary<Guid, String> previousResult)
+        {
+            Dictionary<Guid, String> current = ComputeValueMap();
+
+            if (current.Count != previousResult.Count)
+                return false;
+
+            return previousResult.Keys.All(guid => 
+                current.ContainsKey(guid) && previousResult[guid] == current[guid]);
+        }
+
     }
+
+    internal class MutationTestFailureException : System.Exception { }
 }
