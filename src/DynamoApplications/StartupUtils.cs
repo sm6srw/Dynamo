@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Globalization;
 using NDesk.Options;
+using Greg.AuthProviders;
 
 
 namespace Dynamo.Applications
@@ -187,7 +188,8 @@ namespace Dynamo.Applications
 
             config.UpdateManager = CLImode ? null : InitializeUpdateManager();
             config.StartInTestMode = CLImode ? true : false;
-            config.PathResolver = CLImode ? new CLIPathResolver(preloaderLocation) as IPathResolver : new SandboxPathResolver(preloaderLocation) as IPathResolver ; 
+            config.PathResolver = CLImode ? new CLIPathResolver(preloaderLocation) as IPathResolver : new SandboxPathResolver(preloaderLocation) as IPathResolver ;
+            config.AuthProvider = new OxygenProvider("https://accounts-staging.autodesk.com/");
 
             var model = DynamoModel.Start(config);
             return model;
