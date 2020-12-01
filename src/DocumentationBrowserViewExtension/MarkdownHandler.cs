@@ -82,7 +82,7 @@ namespace Dynamo.DocumentationBrowser
                     return false;
 
                 // Remove scripts from user content for security reasons.
-                if (RemoveScriptTagsFromString(ref mdString))
+                if (SanitizeHtml(ref mdString))
                     scriptTagsRemoved = true;
             }
 
@@ -97,30 +97,22 @@ namespace Dynamo.DocumentationBrowser
         }
 
         /// <summary>
-        /// Sanitize Html
-        /// </summary>
-        /// <param name="content"></param>
-        /// <returns>Returns Sanitized Html</returns>
-        internal string SanitizeHtml(string content)
-        {
-            return converter.SanitizeHtml(content);
-        }
-
-        /// <summary>
         /// Clean up possible dangerous HTML content from the content string.
         /// </summary>
         /// <param name="content"></param>
         /// <returns>Returns true if any content was removed from the content string</returns>
-        internal bool RemoveScriptTagsFromString(ref string content)
+        internal bool SanitizeHtml(ref string content)
         {
-            var sanitizedContent = SanitizeHtml(content);
-            if (content.Equals(sanitizedContent))
+            var sanitizedContent = converter.SanitizeHtml(content);
+
+            if (string.IsNullOrEmpty(sanitizedContent))
+            {
                 return false;
+            }
 
             content = sanitizedContent;
             return true;
         }
-
 
         /// <summary>
         /// Inject syntax highlighting into a html string.

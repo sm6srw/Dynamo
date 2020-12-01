@@ -251,7 +251,7 @@ namespace Dynamo.DocumentationBrowser
 
                 // Get the Node info section and remove script tags if any
                 var nodeDocumentation = NodeDocumentationHtmlGenerator.FromAnnotationEventArgs(e);
-                if (MarkdownHandlerInstance.RemoveScriptTagsFromString(ref nodeDocumentation))
+                if (MarkdownHandlerInstance.SanitizeHtml(ref nodeDocumentation))
                 {
                     LogWarning(Resources.ScriptTagsRemovalWarning, WarningLevel.Mild);
                 }
@@ -398,7 +398,7 @@ namespace Dynamo.DocumentationBrowser
 
             // Clean up possible script tags from document
             if (removeScriptTags &&
-                MarkdownHandlerInstance.RemoveScriptTagsFromString(ref result))
+                MarkdownHandlerInstance.SanitizeHtml(ref result))
             {
                 LogWarning(Resources.ScriptTagsRemovalWarning, WarningLevel.Mild);
             }

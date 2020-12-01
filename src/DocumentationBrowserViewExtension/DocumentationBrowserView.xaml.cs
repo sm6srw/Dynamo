@@ -99,6 +99,9 @@ namespace Dynamo.DocumentationBrowser
             // Cleanup
             this.viewModel.LinkChanged -= NavigateToPage;
             this.documentationBrowser.Navigating -= ShouldAllowNavigation;
+            // Note to test writers
+            // Disposing the document browser will cause future tests
+            // that uses the Browser component to crash
             if (!Models.DynamoModel.IsTestMode)
             {
                 this.documentationBrowser.Dispose();

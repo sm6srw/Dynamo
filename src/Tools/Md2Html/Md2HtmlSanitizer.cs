@@ -4,14 +4,14 @@ using Ganss.XSS;
 namespace Md2Html
 {
     /// <summary>
-    /// HtmlSanitizer class that tracks sanitizing changes
+    /// HtmlSanitizer class that tracks sanitizing updates
     /// </summary>
     internal class Md2HtmlSanitizer : HtmlSanitizer
     {
         /// <summary>
-        /// Is True if any content needed to be sanitized.
+        /// Is True if the content was updated.
         /// </summary>
-        internal bool Changed { get; set; }
+        internal bool ContentWasUpdated { get; set; }
 
         internal Md2HtmlSanitizer()
         {
@@ -23,19 +23,9 @@ namespace Md2Html
             RemovingTag += ChangedEvent;
         }
 
-        ~Md2HtmlSanitizer()
-        {
-            RemovingAtRule -= ChangedEvent;
-            RemovingAttribute -= ChangedEvent;
-            RemovingComment -= ChangedEvent;
-            RemovingCssClass -= ChangedEvent;
-            RemovingStyle -= ChangedEvent;
-            RemovingTag -= ChangedEvent;
-        }
-
         private void ChangedEvent(object sender, EventArgs e)
         {
-            Changed = true;
+            ContentWasUpdated = true;
         }
     }
 }
