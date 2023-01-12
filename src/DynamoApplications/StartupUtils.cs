@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -205,6 +205,7 @@ namespace Dynamo.Applications
 
             var versions = new[]
             {
+                new Version(229,0,0),
                 new Version(228,5,0),
             };
 
